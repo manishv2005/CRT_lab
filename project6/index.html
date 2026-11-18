@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internship Application Tracker | React Context API</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="src/styles.css" />
+
+  <!-- React 18, ReactDOM, and Babel Standalone for direct browser execution -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <!-- React Mount Point -->
+  <div id="root"></div>
+
+  <!-- React JSX Code with Context API -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, createContext, useContext } = React;
+
+    // =========================================================================
+    // 1. INITIAL SAMPLE DATASET (Realistic Student Internship Records)
+    // =========================================================================
+    const INITIAL_APPLICATIONS = [
+      {
+        id: "app-1",
+        company: "Google",
+        role: "Software Engineering Intern - Summer 2027",
+        location: "Mountain View, CA (Hybrid)",
+        stipend: "$55/hr",
+        applyDate: "2026-11-05",
+        status: "Interviewing",
+        jobUrl: "https://careers.google.com/students/",
+        notes: "Passed technical phone screen. Virtual on-site scheduled for next Tuesday."
+      },
+      {
+        id: "app-2",
+        company: "Microsoft",
+        role: "Cloud & DevOps Engineering Intern",
+        location: "Redmond, WA (On-site)",
+        stipend: "$52/hr",
+        applyDate: "2026-11-08",
+        status: "Offered",
+        jobUrl: "https://careers.microsoft.com/students",
+        notes: "Offer letter received! Stipend: $52/hr + housing stipend. Deadline to accept: Dec 1."
+      },
+      {
+        id: "app-3",
+        company: "Amazon",
+        role: "Frontend Developer Intern",
+        location: "Seattle, WA (Hybrid)",
+        stipend: "$50/hr",
+        applyDate: "2026-11-10",
+        status: "Under Review",
+        jobUrl: "https://amazon.jobs/en/teams/internships-for-students",
+        notes: "Completed Online Assessment (OA2). Awaiting recruiter feedback."
+      },
+      {
+        id: "app-4",
+        company: "Meta",
+        role: "Machine Learning & AI Research Intern",
+        location: "Menlo Park, CA (Hybrid)",
+        stipend: "$58/hr",
+        applyDate: "2026-11-12",
+        status: "Applied",
+        jobUrl: "https://www.metacareers.com/students",
+        notes: "Applied via campus referral with resume tailored to PyTorch and NLP."
+      },
+      {
+        id: "app-5",
+        company: "Stripe",
+        role: "Backend Infrastructure Intern",
+        location: "San Francisco, CA (Remote)",
+        stipend: "$56/hr",
+        applyDate: "2026-10-28",
+        status: "Interviewing",
+        jobUrl: "https://stripe.com/jobs/university",
+        notes: "Round 2 technical coding interview completed. Distributed systems design round next."
+      },
+      {
+        id: "app-6",
+        company: "Netflix",
+        role: "Data Engineering Intern",
+        location: "Los Gatos, CA (On-site)",
+        stipend: "$60/hr",
+        applyDate: "2026-10-20",
+        status: "Rejected",
+        jobUrl: "https://jobs.netflix.com/",
+        notes: "Role closed early due to high volume. Encouraged to reapply next season."
+      }
+    ];
+
+    // =========================================================================
+    // 2. CONTEXT API: ApplicationContext & ApplicationProvider
+    // Requirement: Share application data between components using Context API
+    // =========================================================================
+    const ApplicationContext = createContext(null);
+
+    function ApplicationProvider({ children }) {
+      // Load applications from localStorage or use initial set
+      const [applications, setApplications] = useState(() => {
+        try {
+          const saved = localStorage.getItem('internship_applications_record');
+          return saved ? JSON.parse(saved) : INITIAL_APPLICATIONS;
+        } catch (e) {
+          return INITIAL_APPLICATIONS;
+        }
+      });
+
+      // Filter States
+      const [searchQuery, setSearchQuery] = useState('');
+      const [statusFilter, setStatusFilter] = useState('all');
+      const [sortBy, setSortBy] = useState('newest');
+
+      // Sync state with localStorage
+      useEffect(() => {
+        try {
+          localStorage.setItem('internship_applications_record', JSON.stringify(applications));
+        } catch (e) {
+          console.warn('LocalStorage save failed:', e);
+        }
+      }, [applications]);
+
+      // Action 1: Add company and job details
+      const addApplication = (newApp) => {
+        const item = {
+          id: 'app-' + Date.now(),
+          ...newApp,
+          applyDate: newApp.applyDate || new Date().toISOString().split('T')[0]
+        };
+        setApplications(prev => [item, ...prev]);
+      };
+
+      // Action 2 & 3: Maintain & Update application status
+      const updateStatus = (id, newStatus) => {
+        setApplications(prev => prev.map(app => {
+          if (app.id === id) {
+            return { ...app, status: newStatus };
+          }
+          return app;
+        }));
+      };
+
+      // Action 4: Delete application record
+      const deleteApplication = (id) => {
+        setApplications(prev => prev.filter(app => app.id !== id));
+      };
+
+      // Reset to default sample records
+      const resetDefaultData = () => {
+        setApplications(INITIAL_APPLICATIONS);
+        setSearchQuery('');
+        setStatusFilter('all');
+        setSortBy('newest');
+      };
+
+      // Derived Statistics
+      const stats = useMemo(() => {
+        const total = applications.length;
+        const applied = applications.filter(a => a.status === 'Applied').length;
+        const underReview = applications.filter(a => a.status === 'Under Review').length;
+        const interviewing = applications.filter(a => a.status === 'Interviewing').length;
+        const offered = applications.filter(a => a.status === 'Offered').length;
+        const rejected = applications.filter(a => a.status === 'Rejected').length;
+        const successRate = total > 0 ? Math.round(((interviewing + offered) / total) * 100) : 0;
+
+        return { total, applied, underReview, interviewing, offered, rejected, successRate };
+      }, [applications]);
+
+      // Derived Filtered & Sorted Applications (Search and filter applications)
+      const filteredApplications = useMemo(() => {
+        return applications.filter(app => {
+          // Search query matches company name or role title
+          const query = searchQuery.trim().toLowerCase();
+          const matchCompany = app.company.toLowerCase().includes(query);
+          const matchRole = app.role.toLowerCase().includes(query);
+          const matchLocation = app.location.toLowerCase().includes(query);
+          const matchesSearch = query === '' || matchCompany || matchRole || matchLocation;
+
+          // Status filter
+          const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+
+          return matchesSearch && matchesStatus;
+        }).sort((a, b) => {
+          if (sortBy === 'newest') return new Date(b.applyDate) - new Date(a.applyDate);
+          if (sortBy === 'oldest') return new Date(a.applyDate) - new Date(b.applyDate);
+          if (sortBy === 'company') return a.company.localeCompare(b.company);
+          return 0;
+        });
+      }, [applications, searchQuery, statusFilter, sortBy]);
+
+      const value = {
+        applications,
+        filteredApplications,
+        stats,
+        searchQuery,
+        setSearchQuery,
+        statusFilter,
+        setStatusFilter,
+        sortBy,
+        setSortBy,
+        addApplication,
+        updateStatus,
+        deleteApplication,
+        resetDefaultData
+      };
+
+      return (
+        <ApplicationContext.Provider value={value}>
+          {children}
+        </ApplicationContext.Provider>
+      );
+    }
+
+    // Custom Hook to consume Context
+    function useApplications() {
+      const context = useContext(ApplicationContext);
+      if (!context) {
+        throw new Error('useApplications must be used within an ApplicationProvider');
+      }
+      return context;
+    }
+
+    // =========================================================================
+    // 3. COMPONENT: AppHeader
+    // =========================================================================
+    function AppHeader() {
+      return (
+        <header className="app-header">
+          <div className="brand-group">
+            <div className="brand-icon">
+              <i className="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+              <h1 className="brand-title">Career<span className="accent">Track</span></h1>
+              <p className="brand-tagline">Student Internship Application &amp; Offer Management System</p>
+            </div>
+          </div>
+          <div className="header-meta">
+            <span className="context-api-badge">
+              <i className="fa-brands fa-react"></i> Powered by React Context API
+            </span>
+          </div>
+        </header>
+      );
+    }
+
+    // =========================================================================
+    // 4. COMPONENT: ApplicationStats (Overview KPI Cards)
+    // =========================================================================
+    function ApplicationStats() {
+      const { stats } = useApplications();
+
+      return (
+        <section className="stats-grid" aria-label="Internship Application Statistics">
+          <div className="kpi-card card-total">
+            <div className="kpi-icon icon-total"><i className="fa-solid fa-folder-open"></i></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Total Applied</span>
+              <span className="kpi-value">{stats.total}</span>
+            </div>
+          </div>
+
+          <div className="kpi-card card-interviewing">
+            <div className="kpi-icon icon-interviewing"><i className="fa-solid fa-comments"></i></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Interviewing</span>
+              <span className="kpi-value text-interviewing">{stats.interviewing}</span>
+            </div>
+          </div>
+
+          <div className="kpi-card card-offered">
+            <div className="kpi-icon icon-offered"><i className="fa-solid fa-award"></i></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Offers Received</span>
+              <span className="kpi-value text-offered">{stats.offered}</span>
+            </div>
+          </div>
+
+          <div className="kpi-card card-rate">
+            <div className="kpi-icon icon-rate"><i className="fa-solid fa-chart-line"></i></div>
+            <div className="kpi-info">
+              <span className="kpi-label">Interview / Offer Rate</span>
+              <span className="kpi-value text-rate">{stats.successRate}%</span>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 5. COMPONENT: ApplicationForm (Requirement 1: Add company and job details)
+    // =========================================================================
+    function ApplicationForm() {
+      const { addApplication } = useApplications();
+      const [isOpen, setIsOpen] = useState(false);
+
+      const [company, setCompany] = useState('');
+      const [role, setRole] = useState('');
+      const [location, setLocation] = useState('');
+      const [stipend, setStipend] = useState('');
+      const [applyDate, setApplyDate] = useState(new Date().toISOString().split('T')[0]);
+      const [status, setStatus] = useState('Applied');
+      const [jobUrl, setJobUrl] = useState('');
+      const [notes, setNotes] = useState('');
+      const [error, setError] = useState('');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!company.trim() || !role.trim()) {
+          setError('Please provide both the Company Name and Job Role.');
+          return;
+        }
+
+        addApplication({
+          company: company.trim(),
+          role: role.trim(),
+          location: location.trim() || 'Remote / Flexible',
+          stipend: stipend.trim() || 'Competitive',
+          applyDate,
+          status,
+          jobUrl: jobUrl.trim(),
+          notes: notes.trim()
+        });
+
+        // Reset
+        setCompany('');
+        setRole('');
+        setLocation('');
+        setStipend('');
+        setStatus('Applied');
+        setJobUrl('');
+        setNotes('');
+        setError('');
+        setIsOpen(false);
+      };
+
+      return (
+        <section className="form-section" aria-label="Add New Application Form">
+          <div className="form-toggle-row">
+            <button 
+              className="btn btn-primary toggle-form-btn" 
+              onClick={() => setIsOpen(!isOpen)}
+              aria-expanded={isOpen}
+            >
+              <i className={`fa-solid ${isOpen ? 'fa-minus' : 'fa-plus'}`}></i>
+              {isOpen ? 'Close Application Form' : 'Log New Internship Application'}
+            </button>
+            <span className="form-toggle-hint">
+              Keep your recruiter pipelines organized in one centralized dashboard.
+            </span>
+          </div>
+
+          {isOpen && (
+            <div className="form-card animate-slide-down">
+              <div className="form-card-header">
+                <h2><i className="fa-solid fa-file-circle-plus"></i> New Internship Record</h2>
+                <span className="required-note">* Required Fields</span>
+              </div>
+
+              <form onSubmit={handleSubmit} className="app-form" noValidate>
+                {error && <div className="form-error-banner"><i className="fa-solid fa-circle-exclamation"></i> {error}</div>}
+
+                <div className="form-grid-2">
+                  <div className="form-group">
+                    <label htmlFor="company-name">Company Name <span className="req">*</span></label>
+                    <div className="input-wrap">
+                      <i className="fa-solid fa-building input-icon"></i>
+                      <input 
+                        type="text" 
+                        id="company-name" 
+                        placeholder="e.g. Google, Spotify, Apple, Airbnb" 
+                        value={company}
+                        onChange={(e) => { setCompany(e.target.value); if (error) setError(''); }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="job-role">Job Role / Position <span className="req">*</span></label>
+                    <div className="input-wrap">
+                      <i className="fa-solid fa-id-badge input-icon"></i>
+                      <input 
+                        type="text" 
+                        id="job-role" 
+                        placeholder="e.g. Software Engineering Intern, ML Intern" 
+                        value={role}
+                        onChange={(e) => { setRole(e.target.value); if (error) setError(''); }}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-grid-3">
+                  <div className="form-group">
+                    <label htmlFor="job-location">Location / Work Type</label>
+                    <div className="input-wrap">
+                      <i className="fa-solid fa-location-dot input-icon"></i>
+                      <input 
+                        type="text" 
+                        id="job-location" 
+                        placeholder="e.g. San Francisco, CA (Hybrid) or Remote" 
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="job-stipend">Estimated Stipend / Pay</label>
+                    <div className="input-wrap">
+                      <i className="fa-solid fa-wallet input-icon"></i>
+                      <input 
+                        type="text" 
+                        id="job-stipend" 
+                        placeholder="e.g. $52/hr or $8,000/mo" 
+                        value={stipend}
+                        onChange={(e) => setStipend(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="apply-date">Date Applied</label>
+                    <div className="input-wrap">
+                      <i className="fa-regular fa-calendar input-icon"></i>
+                      <input 
+                        type="date" 
+                        id="apply-date" 
+                        value={applyDate}
+                        onChange={(e) => setApplyDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-grid-2">
+                  <div className="form-group">
+                    <label htmlFor="app-status">Initial Application Status</label>
+                    <div className="input-wrap">
+                      <i className="fa-solid fa-bars-progress input-icon"></i>
+                      <select 
+                        id="app-status" 
+                        value={status} 
+                        onChange={(e) => setStatus(e.target.value)}
+                      >
+                        <option value="Applied">Applied</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Interviewing">Interviewing</option>
+                        <option value="Offered">Offered</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="job-url">Application / Portal Link</label>
+                    <div className="input-wrap">
+                      <i className="fa-solid fa-link input-icon"></i>
+                      <input 
+                        type="url" 
+                        id="job-url" 
+                        placeholder="https://company.com/careers/job123" 
+                        value={jobUrl}
+                        onChange={(e) => setJobUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="app-notes">Recruiter Notes / Interview Stages</label>
+                  <textarea 
+                    id="app-notes" 
+                    rows="2" 
+                    placeholder="Recruiter contact, interview dates, referral name, or OA prep..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  ></textarea>
+                </div>
+
+                <div className="form-actions-row">
+                  <button type="submit" className="btn btn-primary">
+                    <i className="fa-solid fa-check"></i> Save Application
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => setIsOpen(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 6. COMPONENT: ApplicationFilter (Requirement 4: Search and filter applications)
+    // =========================================================================
+    function ApplicationFilter() {
+      const { 
+        searchQuery, 
+        setSearchQuery, 
+        statusFilter, 
+        setStatusFilter, 
+        sortBy, 
+        setSortBy, 
+        filteredApplications, 
+        applications,
+        resetDefaultData 
+      } = useApplications();
+
+      const statuses = ['all', 'Applied', 'Under Review', 'Interviewing', 'Offered', 'Rejected'];
+
+      return (
+        <section className="filter-panel" aria-label="Search and Filter Controls">
+          <div className="filter-top-row">
+            
+            {/* Search Input */}
+            <div className="search-wrapper">
+              <i className="fa-solid fa-magnifying-glass search-icon"></i>
+              <input 
+                type="text" 
+                placeholder="Search by company name, role, or location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search applications"
+              />
+              {searchQuery && (
+                <button 
+                  className="clear-search-btn" 
+                  onClick={() => setSearchQuery('')}
+                  title="Clear search"
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              )}
+            </div>
+
+            {/* Sort Select */}
+            <div className="sort-wrapper">
+              <label htmlFor="sort-select"><i className="fa-solid fa-arrow-down-wide-short"></i> Sort:</label>
+              <select 
+                id="sort-select" 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="company">Company (A-Z)</option>
+              </select>
+            </div>
+
+          </div>
+
+          {/* Status Tabs Bar */}
+          <div className="status-tabs-row" role="tablist">
+            <span className="tabs-label">Filter Status:</span>
+            {statuses.map(st => (
+              <button 
+                key={st}
+                className={`tab-btn ${statusFilter === st ? 'active' : ''}`}
+                onClick={() => setStatusFilter(st)}
+                role="tab"
+              >
+                {st === 'all' ? 'All Applications' : st}
+              </button>
+            ))}
+          </div>
+
+          <div className="filter-summary-row">
+            <span className="count-tag">
+              Showing <strong>{filteredApplications.length}</strong> of <strong>{applications.length}</strong> applications
+            </span>
+            <button className="reset-data-btn" onClick={resetDefaultData} title="Reset to sample dataset">
+              <i className="fa-solid fa-rotate-left"></i> Reset Sample Data
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 7. COMPONENT: ApplicationCard (Requirement 2 & 3: Maintain and update status)
+    // =========================================================================
+    function ApplicationCard({ app }) {
+      const { updateStatus, deleteApplication } = useApplications();
+
+      const getStatusClass = (st) => {
+        switch (st) {
+          case 'Applied': return 'status-applied';
+          case 'Under Review': return 'status-review';
+          case 'Interviewing': return 'status-interviewing';
+          case 'Offered': return 'status-offered';
+          case 'Rejected': return 'status-rejected';
+          default: return 'status-default';
+        }
+      };
+
+      const getStatusIcon = (st) => {
+        switch (st) {
+          case 'Applied': return 'fa-paper-plane';
+          case 'Under Review': return 'fa-hourglass-half';
+          case 'Interviewing': return 'fa-comments';
+          case 'Offered': return 'fa-award';
+          case 'Rejected': return 'fa-circle-xmark';
+          default: return 'fa-tag';
+        }
+      };
+
+      return (
+        <article className={`app-card ${getStatusClass(app.status)}`} data-id={app.id}>
+          <div className="card-top">
+            <div className="company-info-block">
+              <div className="company-avatar-box">
+                {app.company.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="company-name">{app.company}</h3>
+                <h4 className="role-title">{app.role}</h4>
+              </div>
+            </div>
+
+            {/* Quick Status Dropdown to UPDATE STATUS in real-time */}
+            <div className="status-updater-wrap">
+              <label htmlFor={`status-${app.id}`} className="status-label">Update Status:</label>
+              <div className="custom-select-wrap">
+                <i className={`fa-solid ${getStatusIcon(app.status)} status-icon-prefix`}></i>
+                <select 
+                  id={`status-${app.id}`}
+                  value={app.status}
+                  onChange={(e) => updateStatus(app.id, e.target.value)}
+                  className={`status-select ${getStatusClass(app.status)}`}
+                  aria-label={`Update application status for ${app.company}`}
+                >
+                  <option value="Applied">Applied</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Interviewing">Interviewing</option>
+                  <option value="Offered">Offered</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="card-meta-grid">
+            <div className="meta-item">
+              <i className="fa-solid fa-location-dot"></i>
+              <span>{app.location}</span>
+            </div>
+            <div className="meta-item">
+              <i className="fa-solid fa-wallet"></i>
+              <span>{app.stipend}</span>
+            </div>
+            <div className="meta-item">
+              <i className="fa-regular fa-calendar-check"></i>
+              <span>Applied: {app.applyDate}</span>
+            </div>
+          </div>
+
+          {app.notes && (
+            <div className="card-notes-box">
+              <i className="fa-regular fa-note-sticky"></i>
+              <p>{app.notes}</p>
+            </div>
+          )}
+
+          <div className="card-footer-row">
+            {app.jobUrl ? (
+              <a 
+                href={app.jobUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn btn-outline btn-sm job-link-btn"
+              >
+                <i className="fa-solid fa-arrow-up-right-from-square"></i> Career Portal
+              </a>
+            ) : <span className="no-link">No link saved</span>}
+
+            <button 
+              className="delete-app-btn"
+              onClick={() => deleteApplication(app.id)}
+              title="Delete record"
+              aria-label={`Delete application for ${app.company}`}
+            >
+              <i className="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </article>
+      );
+    }
+
+    // =========================================================================
+    // 8. COMPONENT: ApplicationList (Dynamic Rendering & Empty State)
+    // =========================================================================
+    function ApplicationList() {
+      const { filteredApplications, statusFilter } = useApplications();
+
+      if (filteredApplications.length === 0) {
+        return (
+          <div className="empty-state-card">
+            <div className="empty-icon-wrap">
+              <i className="fa-solid fa-briefcase"></i>
+            </div>
+            <h3>No Internship Applications Found</h3>
+            <p>
+              {statusFilter !== 'all' 
+                ? `You currently have no applications under "${statusFilter}".` 
+                : 'No applications match your search keyword. Click "Log New Internship Application" above to add your first record!'}
+            </p>
+          </div>
+        );
+      }
+
+      return (
+        <section className="applications-grid" aria-label="Internship Applications Grid">
+          {filteredApplications.map(app => (
+            <ApplicationCard key={app.id} app={app} />
+          ))}
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 9. ROOT APP COMPONENT (Context API Provider Wrapper)
+    // =========================================================================
+    function App() {
+      return (
+        <ApplicationProvider>
+          <div className="app-container">
+            <AppHeader />
+            <ApplicationStats />
+            <ApplicationForm />
+            <ApplicationFilter />
+            <ApplicationList />
+            <footer className="app-footer">
+              <p>&copy; {new Date().getFullYear()} CareerTrack &bull; Student Internship Application Tracker powered by React Context API.</p>
+            </footer>
+          </div>
+        </ApplicationProvider>
+      );
+    }
+
+    // Mount to DOM
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

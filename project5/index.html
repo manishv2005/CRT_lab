@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Responsive Student Academic Dashboard featuring navigation, student profile, academic metrics cards, recent activities timeline, and interactive CSS animations." />
+  <title>Student Academic Dashboard | Apex University Portal</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    
+    <!-- ==================== 1. SIDEBAR NAVIGATION ==================== -->
+    <aside class="sidebar" id="sidebar" aria-label="Student Portal Navigation">
+      <div class="sidebar-header">
+        <a href="#dashboard" class="sidebar-brand">
+          <div class="brand-logo-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div class="brand-info">
+            <span class="brand-name">Apex<span class="brand-accent">Portal</span></span>
+            <span class="brand-sub">Student Academic Hub</span>
+          </div>
+        </a>
+        <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close sidebar navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Academic Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#dashboard" class="nav-link active">
+              <i class="fa-solid fa-chart-pie nav-icon"></i>
+              <span class="nav-text">Dashboard</span>
+              <span class="nav-badge live-badge">Live</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#courses" class="nav-link">
+              <i class="fa-solid fa-book-open nav-icon"></i>
+              <span class="nav-text">My Courses</span>
+              <span class="nav-count">6</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#assignments" class="nav-link">
+              <i class="fa-solid fa-clipboard-list nav-icon"></i>
+              <span class="nav-text">Assignments</span>
+              <span class="nav-badge badge-warning">2 Due</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#schedule" class="nav-link">
+              <i class="fa-solid fa-calendar-days nav-icon"></i>
+              <span class="nav-text">Class Schedule</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#grades" class="nav-link">
+              <i class="fa-solid fa-award nav-icon"></i>
+              <span class="nav-text">Grades &amp; CGPA</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-section-label">Campus Services</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#attendance" class="nav-link">
+              <i class="fa-solid fa-user-check nav-icon"></i>
+              <span class="nav-text">Attendance Log</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#library" class="nav-link">
+              <i class="fa-solid fa-landmark nav-icon"></i>
+              <span class="nav-text">Digital Library</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settings" class="nav-link">
+              <i class="fa-solid fa-sliders nav-icon"></i>
+              <span class="nav-text">Account Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar Footer User Quick Strip -->
+      <div class="sidebar-footer">
+        <div class="user-mini-card">
+          <div class="user-mini-avatar">
+            <span>SC</span>
+            <span class="user-status-dot"></span>
+          </div>
+          <div class="user-mini-details">
+            <span class="user-mini-name">Sarah Chen</span>
+            <span class="user-mini-id">ID: 2024-CS-084</span>
+          </div>
+          <button class="logout-mini-btn" title="Sign out" aria-label="Sign out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar Backdrop Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- ==================== 2. MAIN APP CONTENT CONTAINER ==================== -->
+    <div class="main-wrapper">
+      
+      <!-- Top Navigation Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          
+          <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input 
+              type="text" 
+              placeholder="Search courses, instructors, syllabus, assignments..." 
+              aria-label="Search student dashboard"
+            />
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Current Academic Term Pill -->
+          <div class="term-pill">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Fall Semester 2026</span>
+          </div>
+
+          <!-- Notification Bell with Dropdown -->
+          <div class="notification-wrapper">
+            <button class="icon-btn notif-btn" id="notif-toggle-btn" aria-label="Notifications" aria-expanded="false">
+              <i class="fa-regular fa-bell"></i>
+              <span class="notif-badge-pulse">3</span>
+            </button>
+
+            <!-- Notifications Flyout -->
+            <div class="notif-dropdown hidden" id="notif-dropdown">
+              <div class="notif-dropdown-header">
+                <h3>Notifications</h3>
+                <span class="notif-unread-tag">3 New</span>
+              </div>
+              <ul class="notif-list">
+                <li class="notif-item unread">
+                  <div class="notif-icon icon-success"><i class="fa-solid fa-file-circle-check"></i></div>
+                  <div class="notif-content">
+                    <p class="notif-text">Operating Systems Lab 4 graded: <strong>Grade A (95%)</strong></p>
+                    <span class="notif-time">25 mins ago</span>
+                  </div>
+                </li>
+                <li class="notif-item unread">
+                  <div class="notif-icon icon-warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                  <div class="notif-content">
+                    <p class="notif-text">DBMS Assignment due in <strong>48 hours</strong></p>
+                    <span class="notif-time">2 hours ago</span>
+                  </div>
+                </li>
+                <li class="notif-item unread">
+                  <div class="notif-icon icon-info"><i class="fa-solid fa-bullhorn"></i></div>
+                  <div class="notif-content">
+                    <p class="notif-text">Computer Networks guest lecture rescheduled to Room 402</p>
+                    <span class="notif-time">Yesterday</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Topbar Profile Quick Button -->
+          <div class="topbar-user">
+            <div class="avatar-ring">
+              <div class="avatar-sm">SC</div>
+            </div>
+            <span class="topbar-user-name">Sarah Chen</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Dashboard Page Body -->
+      <main class="dashboard-body" id="dashboard">
+        
+        <!-- Welcome Hero Banner -->
+        <section class="welcome-banner">
+          <div class="welcome-content">
+            <span class="banner-badge"><i class="fa-solid fa-sparkles"></i> Welcome Back, Sarah!</span>
+            <h1 class="welcome-title">Your Academic Dashboard is Up to Date</h1>
+            <p class="welcome-subtitle">
+              You are currently ranked in the <strong>Top 5% (Dean's Honors List)</strong>. You have 2 assignments pending submission this week and 1 upcoming seminar presentation.
+            </p>
+            <div class="welcome-actions">
+              <a href="#assignments" class="btn btn-primary">
+                <i class="fa-solid fa-upload"></i> Submit Assignments
+              </a>
+              <a href="#schedule" class="btn btn-secondary">
+                <i class="fa-solid fa-calendar-day"></i> View Class Schedule
+              </a>
+            </div>
+          </div>
+          <div class="welcome-illustration">
+            <div class="floating-trophy-badge">
+              <i class="fa-solid fa-trophy"></i>
+              <span>CGPA: 3.86</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 2. PROFILE SECTION ==================== -->
+        <section class="section-container" aria-label="Student Profile Overview">
+          <div class="profile-card">
+            <div class="profile-main-info">
+              <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-circle">
+                  <span>SC</span>
+                </div>
+                <div class="profile-online-badge" title="Active Student Status">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+              </div>
+
+              <div class="profile-details-group">
+                <div class="profile-name-row">
+                  <h2 class="profile-full-name">Sarah Chen</h2>
+                  <span class="status-pill status-honors"><i class="fa-solid fa-medal"></i> Dean's Honor Roll</span>
+                  <span class="status-pill status-active"><i class="fa-solid fa-circle"></i> Enrolled</span>
+                </div>
+                <p class="profile-degree">
+                  <i class="fa-solid fa-graduation-cap"></i> B.Tech in Computer Science &amp; Engineering &bull; 3rd Year (Semester 5)
+                </p>
+                <div class="profile-meta-tags">
+                  <span class="meta-tag"><i class="fa-solid fa-id-card"></i> <strong>Roll ID:</strong> 2024-CS-084</span>
+                  <span class="meta-tag"><i class="fa-solid fa-building-columns"></i> <strong>School:</strong> School of Computing &amp; AI</span>
+                  <span class="meta-tag"><i class="fa-solid fa-envelope"></i> sarah.chen@apex.edu</span>
+                  <span class="meta-tag"><i class="fa-solid fa-user-tie"></i> <strong>Advisor:</strong> Prof. Robert Vance</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-action-buttons">
+              <button class="btn btn-outline btn-sm" id="edit-profile-btn">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+              </button>
+              <button class="btn btn-ghost btn-sm" id="download-transcript-btn">
+                <i class="fa-solid fa-file-arrow-down"></i> Unofficial Transcript
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 3. ACADEMIC SUMMARY CARDS ==================== -->
+        <section class="section-container" aria-label="Academic Performance Summary">
+          <div class="section-header">
+            <div>
+              <h2 class="section-heading"><i class="fa-solid fa-chart-line"></i> Academic Summary</h2>
+              <p class="section-subtext">Cumulative semester performance, attendance metrics, and progress towards graduation.</p>
+            </div>
+            <span class="term-tag">Updated: Today, 5:30 PM</span>
+          </div>
+
+          <div class="summary-cards-grid">
+            
+            <!-- Card 1: Cumulative GPA -->
+            <article class="summary-card card-gpa">
+              <div class="card-top-row">
+                <div class="card-icon-box icon-gpa">
+                  <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <span class="trend-badge trend-up">
+                  <i class="fa-solid fa-arrow-trend-up"></i> +0.08
+                </span>
+              </div>
+              <div class="card-metrics">
+                <span class="metric-number">3.86</span>
+                <span class="metric-scale">/ 4.00</span>
+              </div>
+              <h3 class="card-title">Cumulative GPA</h3>
+              <p class="card-description">Highest in Department (Rank #4 of 180)</p>
+              
+              <!-- Progress Gauge Bar -->
+              <div class="metric-progress-wrapper">
+                <div class="progress-info-row">
+                  <span>Target: 3.90</span>
+                  <span>96.5% of Scale</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-gpa" style="width: 96.5%;"></div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 2: Attendance Rate -->
+            <article class="summary-card card-attendance">
+              <div class="card-top-row">
+                <div class="card-icon-box icon-attendance">
+                  <i class="fa-solid fa-user-check"></i>
+                </div>
+                <span class="trend-badge trend-safe">
+                  <i class="fa-solid fa-shield-check"></i> Safe Zone
+                </span>
+              </div>
+              <div class="card-metrics">
+                <span class="metric-number">94.2%</span>
+              </div>
+              <h3 class="card-title">Overall Attendance</h3>
+              <p class="card-description">113 of 120 total lecture sessions attended</p>
+              
+              <div class="metric-progress-wrapper">
+                <div class="progress-info-row">
+                  <span>Req. Min: 75%</span>
+                  <span>+19.2% Above Min</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-attendance" style="width: 94.2%;"></div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 3: Degree Credits Earned -->
+            <article class="summary-card card-credits">
+              <div class="card-top-row">
+                <div class="card-icon-box icon-credits">
+                  <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <span class="trend-badge trend-neutral">
+                  Semester 5
+                </span>
+              </div>
+              <div class="card-metrics">
+                <span class="metric-number">88</span>
+                <span class="metric-scale">/ 128 Credits</span>
+              </div>
+              <h3 class="card-title">Degree Credits Earned</h3>
+              <p class="card-description">40 Credits remaining for graduation</p>
+              
+              <div class="metric-progress-wrapper">
+                <div class="progress-info-row">
+                  <span>Progress to Degree</span>
+                  <span>68.7%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-credits" style="width: 68.7%;"></div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 4: Enrolled Courses & Deadlines -->
+            <article class="summary-card card-courses">
+              <div class="card-top-row">
+                <div class="card-icon-box icon-courses">
+                  <i class="fa-solid fa-book-bookmark"></i>
+                </div>
+                <span class="trend-badge trend-alert">
+                  2 Pending
+                </span>
+              </div>
+              <div class="card-metrics">
+                <span class="metric-number">6</span>
+                <span class="metric-scale">Active Courses</span>
+              </div>
+              <h3 class="card-title">Enrolled This Semester</h3>
+              <p class="card-description">18 Credit Hours across CS Core &amp; Electives</p>
+              
+              <div class="course-mini-tags">
+                <span class="course-chip">CS301 (OS)</span>
+                <span class="course-chip">CS302 (DBMS)</span>
+                <span class="course-chip">CS304 (Networks)</span>
+                <span class="course-chip">MATH204</span>
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+        <!-- ==================== 4. TWO-COLUMN: RECENT ACTIVITIES & DEADLINES ==================== -->
+        <section class="section-container dashboard-split-grid">
+          
+          <!-- Column 1: Recent Activities Timeline -->
+          <div class="split-col recent-activities-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <i class="fa-solid fa-timeline"></i>
+                <h3>Recent Activities</h3>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="clear-activity-filter-btn">
+                <i class="fa-solid fa-arrow-rotate-right"></i> Refresh Log
+              </button>
+            </div>
+
+            <!-- Interactive Activity Timeline -->
+            <ol class="activity-timeline" aria-label="Student Recent Activity Timeline">
+              
+              <!-- Activity Item 1 -->
+              <li class="timeline-entry">
+                <div class="entry-marker marker-green">
+                  <i class="fa-solid fa-file-arrow-up"></i>
+                </div>
+                <div class="entry-card">
+                  <div class="entry-header">
+                    <span class="entry-category tag-assignment">Assignment Submission</span>
+                    <time class="entry-time" datetime="2026-11-17T15:30">Today, 3:30 PM</time>
+                  </div>
+                  <h4 class="entry-title">Submitted "OS Lab 4: Mutex Locks and Reader-Writer Problem"</h4>
+                  <p class="entry-desc">
+                    Uploaded archive <code>lab4_solution.tar.gz</code> with automated test results verified 100% passing.
+                  </p>
+                  <div class="entry-footer">
+                    <span class="entry-course"><i class="fa-solid fa-book"></i> CS301 - Operating Systems</span>
+                    <span class="entry-status status-done"><i class="fa-solid fa-check"></i> Submitted</span>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Activity Item 2 -->
+              <li class="timeline-entry">
+                <div class="entry-marker marker-blue">
+                  <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="entry-card">
+                  <div class="entry-header">
+                    <span class="entry-category tag-grade">Grade Published</span>
+                    <time class="entry-time" datetime="2026-11-17T11:15">Today, 11:15 AM</time>
+                  </div>
+                  <h4 class="entry-title">Midterm Exam Score Released: Linear Algebra</h4>
+                  <p class="entry-desc">
+                    Scored <strong>48 / 50 (96%)</strong> &bull; Class Average: 37.2. Graded by Prof. Henderson.
+                  </p>
+                  <div class="entry-footer">
+                    <span class="entry-course"><i class="fa-solid fa-book"></i> MATH204 - Linear Algebra</span>
+                    <span class="entry-status status-grade"><i class="fa-solid fa-award"></i> Grade A+</span>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Activity Item 3 -->
+              <li class="timeline-entry">
+                <div class="entry-marker marker-purple">
+                  <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div class="entry-card">
+                  <div class="entry-header">
+                    <span class="entry-category tag-attendance">Attendance Marked</span>
+                    <time class="entry-time" datetime="2026-11-16T14:00">Yesterday, 2:00 PM</time>
+                  </div>
+                  <h4 class="entry-title">Attended "Database Query Optimization" Lecture</h4>
+                  <p class="entry-desc">
+                    Biometric attendance registered at Engineering Hall Room 302.
+                  </p>
+                  <div class="entry-footer">
+                    <span class="entry-course"><i class="fa-solid fa-book"></i> CS302 - Database Systems</span>
+                    <span class="entry-status status-present"><i class="fa-solid fa-circle-check"></i> Present</span>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Activity Item 4 -->
+              <li class="timeline-entry">
+                <div class="entry-marker marker-amber">
+                  <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <div class="entry-card">
+                  <div class="entry-header">
+                    <span class="entry-category tag-library">Library Service</span>
+                    <time class="entry-time" datetime="2026-11-15T16:45">Nov 15, 2026</time>
+                  </div>
+                  <h4 class="entry-title">Borrowed: "Computer Networks: A Systems Approach (6th Ed.)"</h4>
+                  <p class="entry-desc">
+                    Checked out digital edition with e-reader license from University Central Library.
+                  </p>
+                  <div class="entry-footer">
+                    <span class="entry-course"><i class="fa-solid fa-book"></i> CS304 - Computer Networks</span>
+                    <span class="entry-status status-borrowed"><i class="fa-solid fa-clock"></i> Due: Dec 15</span>
+                  </div>
+                </div>
+              </li>
+
+            </ol>
+          </div>
+
+          <!-- Column 2: Upcoming Deadlines & Quick Class Schedule -->
+          <div class="split-col upcoming-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <i class="fa-regular fa-calendar-check"></i>
+                <h3>Upcoming Deadlines</h3>
+              </div>
+              <span class="panel-badge-alert">2 Urgent</span>
+            </div>
+
+            <div class="deadlines-list">
+              
+              <!-- Deadline Card 1 -->
+              <div class="deadline-card urgency-high">
+                <div class="deadline-left">
+                  <div class="deadline-date-box">
+                    <span class="date-month">NOV</span>
+                    <span class="date-day">19</span>
+                  </div>
+                  <div class="deadline-info">
+                    <span class="deadline-course">CS302 - Database Systems</span>
+                    <h4 class="deadline-name">B-Tree Indexing Implementation</h4>
+                    <span class="deadline-due-time"><i class="fa-regular fa-clock"></i> Due in 2 days (11:59 PM)</span>
+                  </div>
+                </div>
+                <button class="btn btn-outline btn-sm action-submit-btn" data-course="CS302">
+                  Submit
+                </button>
+              </div>
+
+              <!-- Deadline Card 2 -->
+              <div class="deadline-card urgency-medium">
+                <div class="deadline-left">
+                  <div class="deadline-date-box">
+                    <span class="date-month">NOV</span>
+                    <span class="date-day">21</span>
+                  </div>
+                  <div class="deadline-info">
+                    <span class="deadline-course">CS304 - Computer Networks</span>
+                    <h4 class="deadline-name">Wireshark Packet Analysis Project</h4>
+                    <span class="deadline-due-time"><i class="fa-regular fa-clock"></i> Due in 4 days</span>
+                  </div>
+                </div>
+                <button class="btn btn-outline btn-sm action-submit-btn" data-course="CS304">
+                  Submit
+                </button>
+              </div>
+
+              <!-- Deadline Card 3 -->
+              <div class="deadline-card urgency-low">
+                <div class="deadline-left">
+                  <div class="deadline-date-box">
+                    <span class="date-month">NOV</span>
+                    <span class="date-day">24</span>
+                  </div>
+                  <div class="deadline-info">
+                    <span class="deadline-course">HUM201 - Professional Ethics</span>
+                    <h4 class="deadline-name">Case Study: AI Autonomous Vehicles</h4>
+                    <span class="deadline-due-time"><i class="fa-regular fa-clock"></i> Due in 7 days</span>
+                  </div>
+                </div>
+                <button class="btn btn-outline btn-sm action-submit-btn" data-course="HUM201">
+                  Submit
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Quick Schedule Today Widget -->
+            <div class="today-schedule-box">
+              <div class="schedule-header">
+                <h4><i class="fa-solid fa-chalkboard-user"></i> Tomorrow's Class Schedule</h4>
+                <span class="schedule-day">Wednesday, Nov 18</span>
+              </div>
+              <ul class="schedule-list">
+                <li class="schedule-item">
+                  <span class="schedule-time">09:00 - 10:30 AM</span>
+                  <div class="schedule-details">
+                    <strong>CS301: Operating Systems</strong>
+                    <span>Lecture Hall 101 &bull; Prof. Alan Turing</span>
+                  </div>
+                </li>
+                <li class="schedule-item">
+                  <span class="schedule-time">11:00 - 01:00 PM</span>
+                  <div class="schedule-details">
+                    <strong>CS302: DBMS Lab Practice</strong>
+                    <span>Lab 304 &bull; TA Michael Jordan</span>
+                  </div>
+                </li>
+                <li class="schedule-item">
+                  <span class="schedule-time">02:30 - 04:00 PM</span>
+                  <div class="schedule-details">
+                    <strong>MATH204: Linear Algebra Tutorial</strong>
+                    <span>Seminar Room B &bull; Dr. Katherine Johnson</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- Footer -->
+      <footer class="dashboard-footer">
+        <div class="container-fluid footer-inner">
+          <p class="footer-copy">&copy; 2026 Apex University Student Academic Portal. All Rights Reserved.</p>
+          <div class="footer-links">
+            <a href="#help">Help &amp; IT Desk</a>
+            <a href="#privacy">Privacy Policy</a>
+            <a href="#campus">Campus Directory</a>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <!-- Interactive Toast Notification -->
+  <div class="toast-notification hidden" id="toast-notification" role="status" aria-live="polite">
+    <div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="toast-message" id="toast-message">Action completed successfully.</div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Explore and apply to top tech internship opportunities retrieved dynamically via JSON API. Filter by category, location, and search roles." />
+  <title>InternTrack | Student Internship Opportunities Portal</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./project3/style.css" />
+</head>
+<body>
+
+  <!-- ==================== HEADER & NAVBAR ==================== -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <div class="brand">
+        <div class="brand-logo-icon">
+          <i class="fa-solid fa-briefcase"></i>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-name">Intern<span class="accent-text">Track</span></h1>
+          <span class="brand-tagline">Early Career &amp; Student Opportunities</span>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <span class="live-indicator">
+          <span class="live-dot"></span> Live Opportunities Feed
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== TEST / EVALUATOR CONTROLS BAR ==================== -->
+  <aside class="dev-toolbar" aria-label="Testing Controls for Loading and Error States">
+    <div class="container dev-toolbar-inner">
+      <span class="dev-label"><i class="fa-solid fa-flask-vial"></i> Test States:</span>
+      <div class="dev-buttons">
+        <button class="dev-btn" id="btn-fetch-normal" title="Fetch data normally">
+          <i class="fa-solid fa-circle-check text-success"></i> Normal Fetch
+        </button>
+        <button class="dev-btn" id="btn-simulate-loading" title="Simulate 2-second network loading delay to inspect skeleton loader">
+          <i class="fa-solid fa-spinner fa-spin text-primary"></i> Test Loading State (2s)
+        </button>
+        <button class="dev-btn" id="btn-simulate-error" title="Simulate failed network request to inspect error state">
+          <i class="fa-solid fa-triangle-exclamation text-danger"></i> Test Error State
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== HERO SECTION ==================== -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <span class="hero-pill"><i class="fa-solid fa-sparkles"></i> Summer 2027 Applications Now Open</span>
+        <h2 class="hero-title">Launch Your Tech Career with Top Internships</h2>
+        <p class="hero-subtitle">
+          Dynamically retrieved from our opportunities feed. Search by role, company, or tech stack, and filter across specialized engineering and design disciplines.
+        </p>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="stats-strip">
+        <div class="stat-card">
+          <span class="stat-num" id="stat-total-roles">--</span>
+          <span class="stat-desc">Open Roles</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-companies-count">--</span>
+          <span class="stat-desc">Top Companies</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-remote-count">--</span>
+          <span class="stat-desc">Remote / Hybrid</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-avg-stipend">$50/hr</span>
+          <span class="stat-desc">Avg. Stipend</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MAIN CONTENT & SEARCH / FILTERS ==================== -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Search & Filter Console Card -->
+      <section class="filter-console-card" aria-label="Search and Filter Opportunities">
+        <div class="filter-controls-grid">
+          
+          <!-- Search Input: Company, Role or Skill -->
+          <div class="filter-group search-group">
+            <label for="search-input" class="filter-label">
+              <i class="fa-solid fa-magnifying-glass"></i> Search Opportunities
+            </label>
+            <div class="input-icon-wrapper">
+              <i class="fa-solid fa-search field-icon"></i>
+              <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Search by role, company name (e.g. Google, Frontend, Python)..." 
+                aria-label="Search opportunities by role or company name"
+                autocomplete="off"
+              />
+              <button class="clear-input-btn" id="clear-search-btn" title="Clear search" aria-label="Clear search input">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category Filter Dropdown -->
+          <div class="filter-group category-group">
+            <label for="category-select" class="filter-label">
+              <i class="fa-solid fa-layer-group"></i> Category Filter
+            </label>
+            <div class="select-icon-wrapper">
+              <i class="fa-solid fa-folder-tree field-icon"></i>
+              <select id="category-select" aria-label="Filter opportunities by category">
+                <option value="all">All Categories</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Data Science & AI">Data Science &amp; AI</option>
+                <option value="Cloud & DevOps">Cloud &amp; DevOps</option>
+                <option value="Cybersecurity">Cybersecurity</option>
+                <option value="Design & UI/UX">Design &amp; UI/UX</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Location / Work Type Filter Dropdown -->
+          <div class="filter-group location-group">
+            <label for="worktype-select" class="filter-label">
+              <i class="fa-solid fa-location-dot"></i> Work Type / Location
+            </label>
+            <div class="select-icon-wrapper">
+              <i class="fa-solid fa-building-user field-icon"></i>
+              <select id="worktype-select" aria-label="Filter opportunities by work type">
+                <option value="all">All Work Types (Any Location)</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="On-site">On-site</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Quick Category Badges Bar -->
+        <div class="quick-category-pills" id="quick-category-pills">
+          <span class="pills-label">Quick Tags:</span>
+          <button class="cat-pill active" data-cat="all">All Categories</button>
+          <button class="cat-pill" data-cat="Software Engineering">Software Engineering</button>
+          <button class="cat-pill" data-cat="Data Science & AI">Data Science &amp; AI</button>
+          <button class="cat-pill" data-cat="Cloud & DevOps">Cloud &amp; DevOps</button>
+          <button class="cat-pill" data-cat="Cybersecurity">Cybersecurity</button>
+          <button class="cat-pill" data-cat="Design & UI/UX">Design &amp; UI/UX</button>
+        </div>
+
+        <!-- Filter Meta Status Bar -->
+        <div class="filter-meta-bar">
+          <div class="results-tally">
+            <span id="results-count">Loading opportunities...</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="reset-filters-btn">
+            <i class="fa-solid fa-rotate-left"></i> Reset Filters
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== OPPORTUNITIES DISPLAY SECTION ==================== -->
+      <section class="opportunities-section" aria-label="Internship Opportunities List">
+        
+        <!-- 1. LOADING STATE CONTAINER (Skeleton Card Grid) -->
+        <div class="loading-state" id="loading-state">
+          <div class="loading-spinner-banner">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Retrieving internship opportunities from data source...</span>
+          </div>
+          <div class="cards-grid skeleton-grid">
+            <div class="skeleton-card">
+              <div class="skeleton-header">
+                <div class="skeleton-avatar skeleton-shimmer"></div>
+                <div class="skeleton-text-group">
+                  <div class="skeleton-line skeleton-title skeleton-shimmer"></div>
+                  <div class="skeleton-line skeleton-sub skeleton-shimmer"></div>
+                </div>
+              </div>
+              <div class="skeleton-line skeleton-body skeleton-shimmer"></div>
+              <div class="skeleton-line skeleton-body skeleton-shimmer" style="width: 80%;"></div>
+              <div class="skeleton-tags skeleton-shimmer"></div>
+              <div class="skeleton-btn skeleton-shimmer"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-header">
+                <div class="skeleton-avatar skeleton-shimmer"></div>
+                <div class="skeleton-text-group">
+                  <div class="skeleton-line skeleton-title skeleton-shimmer"></div>
+                  <div class="skeleton-line skeleton-sub skeleton-shimmer"></div>
+                </div>
+              </div>
+              <div class="skeleton-line skeleton-body skeleton-shimmer"></div>
+              <div class="skeleton-line skeleton-body skeleton-shimmer" style="width: 80%;"></div>
+              <div class="skeleton-tags skeleton-shimmer"></div>
+              <div class="skeleton-btn skeleton-shimmer"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-header">
+                <div class="skeleton-avatar skeleton-shimmer"></div>
+                <div class="skeleton-text-group">
+                  <div class="skeleton-line skeleton-title skeleton-shimmer"></div>
+                  <div class="skeleton-line skeleton-sub skeleton-shimmer"></div>
+                </div>
+              </div>
+              <div class="skeleton-line skeleton-body skeleton-shimmer"></div>
+              <div class="skeleton-line skeleton-body skeleton-shimmer" style="width: 80%;"></div>
+              <div class="skeleton-tags skeleton-shimmer"></div>
+              <div class="skeleton-btn skeleton-shimmer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ERROR STATE CONTAINER -->
+        <div class="error-state hidden" id="error-state" role="alert">
+          <div class="error-icon-box">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <h3 class="error-title">Failed to Retrieve Internship Opportunities</h3>
+          <p class="error-message" id="error-message-text">
+            Unable to connect to the JSON data source. Please verify your connection or try again.
+          </p>
+          <div class="error-actions">
+            <button class="btn btn-primary" id="retry-fetch-btn">
+              <i class="fa-solid fa-arrow-rotate-right"></i> Try Again
+            </button>
+            <button class="btn btn-secondary" id="fallback-load-btn">
+              <i class="fa-solid fa-database"></i> Load Cached Data
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. SUCCESS STATE: DYNAMIC INTERNSHIP CARDS GRID -->
+        <div class="cards-grid hidden" id="cards-grid" aria-live="polite">
+          <!-- Populated dynamically via JavaScript fetch -->
+        </div>
+
+        <!-- 4. EMPTY RESULTS STATE -->
+        <div class="empty-state hidden" id="empty-state">
+          <div class="empty-icon-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+          <h3 class="empty-title">No Matching Internships Found</h3>
+          <p class="empty-desc">
+            We couldn't find any opportunities matching your search term or category filters.
+          </p>
+          <button class="btn btn-primary" id="empty-reset-btn">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Clear All Filters
+          </button>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div class="footer-left">
+        <div class="brand">
+          <div class="brand-logo-icon">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <span class="brand-name">Intern<span class="accent-text">Track</span></span>
+        </div>
+        <p class="footer-note">
+          Providing verified university and student internships aggregated across top technology organizations.
+        </p>
+      </div>
+
+      <div class="footer-right">
+        <div class="footer-info-item">
+          <i class="fa-solid fa-code"></i>
+          <span>Dynamic JSON Data Feed Integration</span>
+        </div>
+        <div class="footer-info-item">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Handles Loading, Error &amp; Empty States</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; <span id="current-year">2026</span> InternTrack. Built with Semantic HTML5, CSS Grid/Flexbox &amp; Vanilla JavaScript Fetch API.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript File -->
+  <script src="./project3/script.js"></script>
+</body>
+</html>

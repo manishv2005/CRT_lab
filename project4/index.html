@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Academic Task Manager | React App</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- External CSS Styles -->
+  <link rel="stylesheet" href="src/styles.css" />
+
+  <!-- React 18 and Babel Standalone for direct browser execution -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <!-- React Mount Point -->
+  <div id="root"></div>
+
+  <!-- React JSX Code -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // =========================================================================
+    // 1. INITIAL SAMPLE ACADEMIC TASKS DATASET
+    // =========================================================================
+    const INITIAL_TASKS = [
+      {
+        id: "task-1",
+        title: "Complete Operating Systems Lab Assignment 4 (Semaphore & Mutex)",
+        course: "CS301 - Operating Systems",
+        priority: "High",
+        dueDate: "2026-11-20",
+        completed: false,
+        createdAt: "2026-11-16"
+      },
+      {
+        id: "task-2",
+        title: "Review Linear Algebra Chapter 5: Eigenvalues & Matrix Decomposition",
+        course: "MATH204 - Linear Algebra",
+        priority: "Medium",
+        dueDate: "2026-11-21",
+        completed: true,
+        createdAt: "2026-11-15"
+      },
+      {
+        id: "task-3",
+        title: "Submit Computer Networks Project Report on TCP vs UDP Latency",
+        course: "CS304 - Computer Networks",
+        priority: "High",
+        dueDate: "2026-11-22",
+        completed: false,
+        createdAt: "2026-11-17"
+      },
+      {
+        id: "task-4",
+        title: "Prepare Slide Deck for Database Management Systems Seminar",
+        course: "CS302 - DBMS",
+        priority: "Medium",
+        dueDate: "2026-11-24",
+        completed: false,
+        createdAt: "2026-11-17"
+      },
+      {
+        id: "task-5",
+        title: "Solve Practice Problems on Dynamic Programming & Graphs",
+        course: "CS201 - Data Structures",
+        priority: "Low",
+        dueDate: "2026-11-25",
+        completed: true,
+        createdAt: "2026-11-14"
+      }
+    ];
+
+    // =========================================================================
+    // 2. COMPONENT: TaskHeader
+    // =========================================================================
+    function TaskHeader() {
+      const today = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      return (
+        <header className="app-header">
+          <div className="header-brand">
+            <div className="brand-icon">
+              <i className="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+              <h1 className="brand-title">EduTask <span className="highlight">Planner</span></h1>
+              <p className="brand-subtitle">Student Academic Task &amp; Assignment Manager</p>
+            </div>
+          </div>
+          <div className="header-date">
+            <i className="fa-regular fa-calendar-check"></i>
+            <span>{today}</span>
+          </div>
+        </header>
+      );
+    }
+
+    // =========================================================================
+    // 3. COMPONENT: TaskStats (Counts Pending and Completed Tasks)
+    // =========================================================================
+    function TaskStats({ total, pending, completed }) {
+      const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      return (
+        <section className="stats-container" aria-label="Task Summary Statistics">
+          <div className="stat-card stat-total">
+            <div className="stat-icon-wrapper icon-total">
+              <i className="fa-solid fa-list-check"></i>
+            </div>
+            <div className="stat-info">
+              <span className="stat-label">Total Tasks</span>
+              <span className="stat-value">{total}</span>
+            </div>
+          </div>
+
+          <div className="stat-card stat-pending">
+            <div className="stat-icon-wrapper icon-pending">
+              <i className="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div className="stat-info">
+              <span className="stat-label">Pending Tasks</span>
+              <span className="stat-value pending-text">{pending}</span>
+            </div>
+          </div>
+
+          <div className="stat-card stat-completed">
+            <div className="stat-icon-wrapper icon-completed">
+              <i className="fa-solid fa-circle-check"></i>
+            </div>
+            <div className="stat-info">
+              <span className="stat-label">Completed Tasks</span>
+              <span className="stat-value completed-text">{completed}</span>
+            </div>
+          </div>
+
+          <div className="stat-card stat-progress">
+            <div className="progress-header">
+              <span className="stat-label">Academic Progress</span>
+              <span className="progress-percent">{percent}%</span>
+            </div>
+            <div className="progress-bar-track">
+              <div 
+                className="progress-bar-fill" 
+                style={{ width: `${percent}%` }}
+                role="progressbar" 
+                aria-valuenow={percent} 
+                aria-valuemin="0" 
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 4. COMPONENT: TaskForm (Add New Tasks)
+    // =========================================================================
+    function TaskForm({ onAddTask }) {
+      const [title, setTitle] = useState('');
+      const [course, setCourse] = useState('General Academic');
+      const [priority, setPriority] = useState('Medium');
+      const [dueDate, setDueDate] = useState('');
+      const [error, setError] = useState('');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!title.trim()) {
+          setError('Please provide a task title or description.');
+          return;
+        }
+
+        onAddTask({
+          title: title.trim(),
+          course,
+          priority,
+          dueDate: dueDate || new Date().toISOString().split('T')[0]
+        });
+
+        // Reset form
+        setTitle('');
+        setCourse('General Academic');
+        setPriority('Medium');
+        setDueDate('');
+        setError('');
+      };
+
+      return (
+        <section className="form-card" aria-label="Add New Task Form">
+          <div className="card-heading">
+            <i className="fa-solid fa-circle-plus"></i>
+            <h2>Add Academic Task</h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="task-form" noValidate>
+            <div className="form-group">
+              <label htmlFor="task-title">Task Description / Assignment Title <span className="req">*</span></label>
+              <div className="input-with-icon">
+                <i className="fa-solid fa-pen-nib input-icon"></i>
+                <input
+                  type="text"
+                  id="task-title"
+                  placeholder="e.g. Read Chapters 3-4, Submit Lab Record, Prepare for Midterm Quiz..."
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className={error ? 'input-error' : ''}
+                />
+              </div>
+              {error && <span className="error-msg">{error}</span>}
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="task-course">Course / Subject</label>
+                <div className="input-with-icon">
+                  <i className="fa-solid fa-book-bookmark input-icon"></i>
+                  <select 
+                    id="task-course" 
+                    value={course} 
+                    onChange={(e) => setCourse(e.target.value)}
+                  >
+                    <option value="General Academic">General Academic</option>
+                    <option value="CS301 - Operating Systems">CS301 - Operating Systems</option>
+                    <option value="CS302 - DBMS">CS302 - DBMS</option>
+                    <option value="CS304 - Computer Networks">CS304 - Computer Networks</option>
+                    <option value="MATH204 - Linear Algebra">MATH204 - Linear Algebra</option>
+                    <option value="CS201 - Data Structures">CS201 - Data Structures</option>
+                    <option value="Project & Seminar">Project &amp; Seminar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="task-priority">Priority Level</label>
+                <div className="input-with-icon">
+                  <i className="fa-solid fa-flag input-icon"></i>
+                  <select 
+                    id="task-priority" 
+                    value={priority} 
+                    onChange={(e) => setPriority(e.target.value)}
+                  >
+                    <option value="High">High Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="Low">Low Priority</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="task-due-date">Due Date</label>
+                <div className="input-with-icon">
+                  <i className="fa-regular fa-calendar input-icon"></i>
+                  <input
+                    type="date"
+                    id="task-due-date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary add-task-btn">
+              <i className="fa-solid fa-plus"></i> Add Academic Task
+            </button>
+          </form>
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 5. COMPONENT: TaskFilter (Filter by Status, Search, and Course)
+    // =========================================================================
+    function TaskFilter({ 
+      filterStatus, 
+      setFilterStatus, 
+      searchQuery, 
+      setSearchQuery, 
+      courseFilter, 
+      setCourseFilter,
+      totalCount,
+      onResetDefaults
+    }) {
+      return (
+        <section className="filter-bar" aria-label="Task Filters">
+          <div className="filter-controls">
+            {/* Status Tabs */}
+            <div className="status-tabs" role="tablist">
+              <button 
+                className={`tab-btn ${filterStatus === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterStatus('all')}
+                role="tab"
+              >
+                All Tasks
+              </button>
+              <button 
+                className={`tab-btn ${filterStatus === 'pending' ? 'active' : ''}`}
+                onClick={() => setFilterStatus('pending')}
+                role="tab"
+              >
+                Pending
+              </button>
+              <button 
+                className={`tab-btn ${filterStatus === 'completed' ? 'active' : ''}`}
+                onClick={() => setFilterStatus('completed')}
+                role="tab"
+              >
+                Completed
+              </button>
+            </div>
+
+            {/* Course Filter Dropdown */}
+            <div className="filter-select-wrapper">
+              <select 
+                value={courseFilter} 
+                onChange={(e) => setCourseFilter(e.target.value)}
+                className="course-select"
+                aria-label="Filter tasks by course"
+              >
+                <option value="all">All Courses</option>
+                <option value="CS301 - Operating Systems">CS301 - Operating Systems</option>
+                <option value="CS302 - DBMS">CS302 - DBMS</option>
+                <option value="CS304 - Computer Networks">CS304 - Computer Networks</option>
+                <option value="MATH204 - Linear Algebra">MATH204 - Linear Algebra</option>
+                <option value="CS201 - Data Structures">CS201 - Data Structures</option>
+                <option value="General Academic">General Academic</option>
+                <option value="Project & Seminar">Project &amp; Seminar</option>
+              </select>
+            </div>
+
+            {/* Search Input */}
+            <div className="search-box">
+              <i className="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="text"
+                placeholder="Search tasks by title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search academic tasks"
+              />
+              {searchQuery && (
+                <button 
+                  className="clear-search" 
+                  onClick={() => setSearchQuery('')}
+                  title="Clear search"
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="filter-footer">
+            <span className="results-badge">Showing {totalCount} tasks</span>
+            <button className="btn-text-link" onClick={onResetDefaults} title="Reset to default sample tasks">
+              <i className="fa-solid fa-rotate-left"></i> Reset Sample Data
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 6. COMPONENT: TaskItem (Individual Task with Toggle & Delete)
+    // =========================================================================
+    function TaskItem({ task, onToggleComplete, onDeleteTask }) {
+      const priorityClass = task.priority.toLowerCase();
+
+      return (
+        <article className={`task-card ${task.completed ? 'task-completed' : ''}`}>
+          {/* Complete Toggle Checkbox */}
+          <button 
+            className={`checkbox-btn ${task.completed ? 'checked' : ''}`}
+            onClick={() => onToggleComplete(task.id)}
+            title={task.completed ? "Mark as Pending" : "Mark as Completed"}
+            aria-label={`Toggle task completion for: ${task.title}`}
+          >
+            {task.completed ? (
+              <i className="fa-solid fa-circle-check check-icon"></i>
+            ) : (
+              <i className="fa-regular fa-circle uncheck-icon"></i>
+            )}
+          </button>
+
+          {/* Task Info Content */}
+          <div className="task-content">
+            <div className="task-header-tags">
+              <span className="course-pill">
+                <i className="fa-solid fa-bookmark"></i> {task.course}
+              </span>
+              <span className={`priority-pill priority-${priorityClass}`}>
+                <i className="fa-solid fa-flag"></i> {task.priority}
+              </span>
+            </div>
+
+            <h3 className={`task-title ${task.completed ? 'strikethrough' : ''}`}>
+              {task.title}
+            </h3>
+
+            <div className="task-meta">
+              <span className="due-date">
+                <i className="fa-regular fa-calendar"></i> Due: {task.dueDate || 'Flexible'}
+              </span>
+              {task.completed && (
+                <span className="completed-badge">
+                  <i className="fa-solid fa-check"></i> Completed
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Delete Action Button */}
+          <div className="task-actions">
+            <button 
+              className="delete-btn" 
+              onClick={() => onDeleteTask(task.id)}
+              title="Delete task"
+              aria-label={`Delete task: ${task.title}`}
+            >
+              <i className="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </article>
+      );
+    }
+
+    // =========================================================================
+    // 7. COMPONENT: TaskList (Renders Dynamic List of TaskItems or Empty State)
+    // =========================================================================
+    function TaskList({ tasks, onToggleComplete, onDeleteTask }) {
+      if (tasks.length === 0) {
+        return (
+          <div className="empty-tasks-card">
+            <div className="empty-icon">
+              <i className="fa-solid fa-clipboard-list"></i>
+            </div>
+            <h3>No Academic Tasks Found</h3>
+            <p>You have no tasks matching this filter. Add a new assignment above to stay organized!</p>
+          </div>
+        );
+      }
+
+      return (
+        <section className="task-list" aria-label="Academic Tasks List">
+          {tasks.map(task => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onToggleComplete={onToggleComplete}
+              onDeleteTask={onDeleteTask}
+            />
+          ))}
+        </section>
+      );
+    }
+
+    // =========================================================================
+    // 8. ROOT APP COMPONENT (State Management & Logic)
+    // =========================================================================
+    function App() {
+      // Retrieve stored tasks from localStorage or use initial set
+      const [tasks, setTasks] = useState(() => {
+        try {
+          const stored = localStorage.getItem('academic_tasks_data');
+          return stored ? JSON.parse(stored) : INITIAL_TASKS;
+        } catch (e) {
+          return INITIAL_TASKS;
+        }
+      });
+
+      // Filter States
+      const [filterStatus, setFilterStatus] = useState('all');
+      const [courseFilter, setCourseFilter] = useState('all');
+      const [searchQuery, setSearchQuery] = useState('');
+
+      // Persist to localStorage on change
+      useEffect(() => {
+        try {
+          localStorage.setItem('academic_tasks_data', JSON.stringify(tasks));
+        } catch (e) {
+          console.warn('LocalStorage save failed:', e);
+        }
+      }, [tasks]);
+
+      // Requirement: Add new task
+      const handleAddTask = (newTaskData) => {
+        const newTask = {
+          id: 'task-' + Date.now(),
+          ...newTaskData,
+          completed: false,
+          createdAt: new Date().toISOString().split('T')[0]
+        };
+        setTasks(prev => [newTask, ...prev]);
+      };
+
+      // Requirement: Mark task as completed / toggle
+      const handleToggleComplete = (taskId) => {
+        setTasks(prev => prev.map(t => {
+          if (t.id === taskId) {
+            return { ...t, completed: !t.completed };
+          }
+          return t;
+        }));
+      };
+
+      // Requirement: Delete task
+      const handleDeleteTask = (taskId) => {
+        setTasks(prev => prev.filter(t => t.id !== taskId));
+      };
+
+      // Reset to initial sample tasks
+      const handleResetDefaults = () => {
+        setTasks(INITIAL_TASKS);
+        setFilterStatus('all');
+        setCourseFilter('all');
+        setSearchQuery('');
+      };
+
+      // Requirement: Display pending and completed task counts
+      const counts = useMemo(() => {
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+        const pending = total - completed;
+        return { total, pending, completed };
+      }, [tasks]);
+
+      // Filter tasks dynamically
+      const filteredTasks = useMemo(() => {
+        return tasks.filter(task => {
+          // Status Filter
+          if (filterStatus === 'pending' && task.completed) return false;
+          if (filterStatus === 'completed' && !task.completed) return false;
+
+          // Course Filter
+          if (courseFilter !== 'all' && task.course !== courseFilter) return false;
+
+          // Search Filter
+          if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            const matchTitle = task.title.toLowerCase().includes(q);
+            const matchCourse = task.course.toLowerCase().includes(q);
+            if (!matchTitle && !matchCourse) return false;
+          }
+
+          return true;
+        });
+      }, [tasks, filterStatus, courseFilter, searchQuery]);
+
+      return (
+        <div className="app-layout">
+          <div className="container app-container">
+            {/* Header */}
+            <TaskHeader />
+
+            {/* Pending & Completed Task Counts */}
+            <TaskStats 
+              total={counts.total} 
+              pending={counts.pending} 
+              completed={counts.completed} 
+            />
+
+            {/* Add Task Form */}
+            <TaskForm onAddTask={handleAddTask} />
+
+            {/* Filter & Search Bar */}
+            <TaskFilter 
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              courseFilter={courseFilter}
+              setCourseFilter={setCourseFilter}
+              totalCount={filteredTasks.length}
+              onResetDefaults={handleResetDefaults}
+            />
+
+            {/* Dynamic React Task List */}
+            <TaskList 
+              tasks={filteredTasks}
+              onToggleComplete={handleToggleComplete}
+              onDeleteTask={handleDeleteTask}
+            />
+
+            {/* Footer */}
+            <footer className="app-footer">
+              <p>&copy; {new Date().getFullYear()} EduTask Planner &bull; Academic Task Management System built with React Components.</p>
+            </footer>
+          </div>
+        </div>
+      );
+    }
+
+    // Render React Application
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
